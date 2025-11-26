@@ -123,11 +123,32 @@ router.post("/", async (req: Request, res: Response) => {
     try {
       sqlQuery = await convertToSQL(message, sanitizedHistory);
     } catch (error: any) {
-      console.error("NL to SQL error:", error.message);
-      return res.status(500).json({
-        error: "Failed to understand the question",
-        details: error.message
-      });
+      // IMPORTANT:
+      // Do NOT surface this as a 500 to the frontend – it causes the generic
+      // "Sorry, I could not process your request" message in the UI.
+      // Instead, return a safe assistant-style response so the chat history
+      // stays intact and the user understands what went wrong.
+      console.error("NL to SQL error:", error?.message || error);
+
+      const friendlyMessage =
+        typeof error?.message === "string" &&
+        (error.message.includes("model is overloaded") ||
+          error.message.includes("Service Unavailable") ||
+          error.message.includes("Internal error has occurred"))
+          ? "Gemini is temporarily overloaded and couldn’t safely generate a query for this question. Please wait a few seconds and try again, or rephrase the question slightly."
+          : "I wasn’t able to convert this question into a safe SQL query. Try simplifying or rephrasing it (for example, ask for one metric or entity at a time).";
+
+      const safeResponse: ResponseSchema = {
+        summary: friendlyMessage,
+        time_range: { from: "", to: "" },
+        grouping: "none",
+        metrics: [],
+        raw_answer: friendlyMessage,
+        insight_summary: "",
+        raw_rows: [],
+      };
+
+      return res.json(safeResponse);
     }
 
     // Low confidence check

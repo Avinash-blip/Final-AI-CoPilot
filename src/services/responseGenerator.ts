@@ -93,35 +93,38 @@ function extractTopResults(rawRows: any[], limit: number): string {
  */
 function buildQuestionFocusedPrompt(question: string, topResults: string, nlExample: any): string {
     const exampleStyle = nlExample 
-        ? `\nExample answer style: "${nlExample.example_answer.substring(0, 100)}..."`
+        ? `\nExample tone: "${nlExample.example_answer.substring(0, 100)}..."`
         : "";
     
-    return `Answer this question about logistics data:
+    return `You are answering a user's question about logistics/transportation data.
 
-QUESTION: ${question}
+USER'S QUESTION: "${question}"
 
-DATA:
+DATA FROM DATABASE:
 ${topResults}
 ${exampleStyle}
 
-Instructions:
-- Answer the QUESTION directly in 2-3 sentences
-- Use specific numbers from the DATA
-- Be conversational, like a helpful analyst
-- Do NOT mention SQL, databases, or technical terms
+RULES:
+1. Answer ONLY what the user asked - nothing more, nothing less
+2. Use the specific numbers from the DATA above
+3. Keep it to 1-2 sentences, conversational tone
+4. Do NOT list items, do NOT use bullet points or numbered lists
+5. Do NOT mention SQL, databases, queries, or technical terms
+6. If the question asks "how many" or "total", give the number directly
+7. If the question asks "which" or "top", mention the top result by name
 
-Answer:`;
+Now answer this question: "${question}"`;
 }
 
 /**
  * Ultra-minimal retry prompt when first attempt fails
  */
 async function retryWithMinimalPrompt(model: any, question: string, topResults: string): Promise<string> {
-    const minimalPrompt = `Question: ${question}
+    const minimalPrompt = `User asked: "${question}"
 
 Data: ${topResults}
 
-Write a 2-sentence answer to the question using the data above:`;
+In 1-2 sentences, answer EXACTLY what the user asked using the data. No lists, no bullet points:`;
 
     try {
         const result = await model.generateContent(minimalPrompt);
@@ -185,41 +188,19 @@ function generateFallbackResponse(question: string, sqlResults: any[]): string {
 
     // Handle performance/ranking queries with on-time percentage
     if (columns.includes('ontime_pct') || columns.includes('total_trips')) {
-        const top5 = sqlResults.slice(0, 5);
-
-        let response = `Here's the transporter performance ranking (top ${top5.length} shown):\n\n`;
-        top5.forEach((row, index) => {
-            const entity = row.trip_transporter_name || row[columns[0]] || 'Unknown';
-            const total = row.total_trips || row.total || 0;
-            const ontime = row.ontime_pct || 0;
-            response += `${index + 1}. ${entity}\n`;
-            response += `   ${total.toLocaleString()} trips | On-Time: ${ontime.toFixed(1)}%\n\n`;
-        });
-
-        if (sqlResults.length > 5) {
-            response += `...and ${sqlResults.length - 5} more transporters analyzed.`;
-        }
-
-        return response;
+        const topEntity = sqlResults[0]?.trip_transporter_name || sqlResults[0]?.[columns[0]] || 'the top performer';
+        const topTrips = sqlResults[0]?.total_trips || sqlResults[0]?.total || 0;
+        
+        return `Here's the performance breakdown. ${topEntity} leads with ${topTrips.toLocaleString()} trips. See the visualization below for the full ranking across ${sqlResults.length} entries.`;
     }
 
     // Handle aggregation with grouping (transporters, routes, etc.)
     if (columns.includes('total') && sqlResults.length > 1) {
-        const entityColumn = columns[0]; // First column is usually the entity name
-        const top3 = sqlResults.slice(0, 3);
-
-        let response = `Here are the top results:\n\n`;
-        top3.forEach((row, index) => {
-            const entity = row[entityColumn] || 'Unknown';
-            const total = row.total || row.total_trips || 0;
-            response += `${index + 1}. ${entity}: ${total.toLocaleString()} trips\n`;
-        });
-
-        if (sqlResults.length > 3) {
-            response += `\n...and ${sqlResults.length - 3} more results.`;
-        }
-
-        return response;
+        const entityColumn = columns[0];
+        const topEntity = sqlResults[0]?.[entityColumn] || 'the top result';
+        const topTotal = sqlResults[0]?.total || sqlResults[0]?.total_trips || 0;
+        
+        return `Here are the results. ${topEntity} leads with ${topTotal.toLocaleString()} trips. The visualization below shows all ${sqlResults.length} entries.`;
     }
 
     // Handle delay-related queries
@@ -230,15 +211,7 @@ function generateFallbackResponse(question: string, sqlResults: any[]): string {
 
     // Handle list queries (many rows returned)
     if (sqlResults.length >= 10) {
-        const sampleData = sqlResults.slice(0, 3);
-        const keyColumn = columns.find(c => c.includes('name') || c.includes('id') || c.includes('route'));
-
-        if (keyColumn) {
-            const samples = sampleData.map(r => r[keyColumn]).filter(Boolean).join(', ');
-            return `I found ${sqlResults.length} matching records. Here are a few examples: ${samples}${sqlResults.length > 3 ? ', and more' : ''}.`;
-        }
-
-        return `I found ${sqlResults.length} matching records for your query.`;
+        return `I found ${sqlResults.length} matching records. The visualization below shows the breakdown.`;
     }
 
     // Handle single row results (scalar or record)
@@ -265,26 +238,7 @@ function generateFallbackResponse(question: string, sqlResults: any[]): string {
 
     // Handle small result sets (2-5 rows) that didn't match other patterns
     if (sqlResults.length > 1 && sqlResults.length <= 5) {
-        let response = `I found ${sqlResults.length} results:\n\n`;
-
-        // Try to find a "name" or "id" column to use as a header
-        const nameCol = columns.find(c => c.toLowerCase().includes('name') || c.toLowerCase().includes('id') || c.toLowerCase().includes('route'));
-
-        sqlResults.forEach((row, idx) => {
-            if (nameCol) {
-                const name = row[nameCol];
-                const otherCols = columns.filter(c => c !== nameCol).map(c => {
-                    const val = row[c];
-                    return `${c.replace(/_/g, ' ')}: ${val}`;
-                }).join(', ');
-                response += `${idx + 1}. ${name} (${otherCols})\n`;
-            } else {
-                // Just list values
-                const vals = columns.map(c => `${c}: ${row[c]}`).join(', ');
-                response += `${idx + 1}. ${vals}\n`;
-            }
-        });
-        return response;
+        return `I found ${sqlResults.length} results for your query. Check the visualization below for the breakdown.`;
     }
 
     // Default fallback for larger sets
