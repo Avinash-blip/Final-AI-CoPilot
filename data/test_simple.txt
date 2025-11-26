@@ -1,0 +1,35 @@
+AI Ops Copilot Test Data
+========================
+
+TRANSPORTER STATISTICS (November 2025)
+---------------------------------------
+
+Most Popular Transporter:
+- Rapid Fleet Management Service: 156 trips
+- Average delay rate: 5.13%
+
+Second Most Popular:
+- RITCO LOGISTICS LIMITED: 89 trips  
+- Average delay rate: 13.48%
+
+Third Most Popular:
+- Safe and secure logistics pvt ltd: 67 trips
+- Average delay rate: 7.46%
+
+DELAY SUMMARY
+-------------
+Total trips analyzed: 679
+Total delayed trips: 127
+Overall delay percentage: 18.70%
+
+TOP ROUTES BY VOLUME
+--------------------
+1. Chennai:1800-Bangalore DC:PBLDD - 45 trips (6.67% delayed)
+2. Nashik:1200-Ahmedabad DC:PAHWD - 38 trips (13.16% delayed)
+3. Hyderabad:HYRD-Nagpur DC:PNGRD - 34 trips (23.53% delayed)
+
+COMMON DELAY CAUSES
+-------------------
+- Long stoppage alerts: 45 trips
+- Route deviations: 23 trips
+- STA breaches: 59 trips

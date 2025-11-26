@@ -1,0 +1,14 @@
+[
+  {
+    "id": "top_delayed_transporter_blr_mum",
+    "match_keywords": ["bangalore", "mumbai", "delayed", "transporter"],
+    "example_insight": "QUESTION: Which transporter had the highest number of delayed trips on Bangalore → Mumbai routes?\nENTITY_TYPE: transporter (trip_transporter_name)\nMETRIC: delayed trips (delayed_trip_count)\nROWS_RETURNED: 5\nTIME_WINDOW: 2025-10-21 → 2025-11-21\nTop performers (trip_transporter_name by delayed_trip_count): 1. Safe and secure logistics pvt ltd: 2,693; 2. TEJ CARRIER PRIVATE LIMITED: 1,223; 3. 20CUBE LOGISTICS SOLUTIONS PRIVATE LIMITED: 1,041.\n1 rows (~20.0%) missing trip_transporter_name.",
+    "example_answer": "On the Bangalore → Mumbai corridor, Safe and secure logistics pvt ltd is handling the highest number of delayed trips in this sample, well ahead of the next few transporters. TEJ Carrier and 20Cube Logistics also show meaningful delayed volume, but they trail the leader by a clear margin. Operationally, you’d want to prioritise conversations with Safe and secure logistics first to stabilise this lane."
+  },
+  {
+    "id": "top_routes_per_transporter",
+    "match_keywords": ["top", "routes", "transporter"],
+    "example_insight": "QUESTION: For each transporter, show their top 3 most-used routes based on trip volume.\nENTITY_TYPE: transporter (trip_transporter_name)\nMETRIC: trip volume (total_trips)\nROWS_RETURNED: 15\nCOLUMNS_SAMPLED: trip_transporter_name, route_name, total_trips\nTop performers (trip_transporter_name by total_trips): 1. Safe and secure logistics pvt ltd: 4,668; 2. BPV RITCO LOGISTICS LIMITED: 3,263; 3. TEJ CARRIER PRIVATE LIMITED: 2,112.",
+    "example_answer": "Looking at route mix, each large transporter has a few dominant lanes where most of their trips sit. For example, Safe and secure logistics pvt ltd is heavily concentrated on a handful of high-volume routes, while others like BPV RITCO and TEJ Carrier spread their volume across a slightly wider set of lanes. This kind of view helps you decide where to focus lane-level performance reviews with each partner."
+  }
+]

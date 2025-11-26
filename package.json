@@ -1,0 +1,29 @@
+{
+  "name": "ai-ops-copilot-backend",
+  "version": "1.0.0",
+  "main": "dist/server.js",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "node --loader ts-node/esm --experimental-specifier-resolution=node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "poc:smoke": "node --loader ts-node/esm src/scripts/pocSmoke.ts"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "csv-parse": "^6.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "markdown-to-txt": "^2.0.1",
+    "sql.js": "^1.13.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.30",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.0"
+  }
+}
