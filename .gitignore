@@ -4,3 +4,9 @@ dist/
 *.log
 .DS_Store
 
+
+# Large data files
+data/indent_trips_epod_data.csv
+data/trips.db
+*.db
+
