@@ -54,6 +54,10 @@ export function getContextCatalog(): ColumnContext[] {
   return loadContext();
 }
 
+export function getColumnNames(): string[] {
+  return loadContext().map(col => col.column);
+}
+
 export function buildContextSnippet(question: string, maxEntries = 18): string {
   const columns = loadContext();
   if (!columns.length) {
